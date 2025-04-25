@@ -1,0 +1,98 @@
+
+
+    public static void main(String[] args) {
+        SpringApplication.run(MutualFollowerApplication.class, args);
+    }
+
+    @Override
+    public void run(String... args) throws Exception {
+        // Optionally, you could initialize your local users here.
+    }
+
+    @PostMapping("/findUsersAtLevel")
+    public ResponseEntity<List<Integer>> findUsersAtLevel(@RequestBody Map<String, Object> input) {
+        List<Integer> userIds = findUsersAtLevelImplementation(input);
+        return ResponseEntity.ok(userIds);
+    }
+
+    @GetMapping("/users")
+    public ResponseEntity<List<User>> getUsers() {
+        // Retrieve and return the list of users.
+        List<User> users = getSampleUsers(); // Function to retrieve sample users
+        return ResponseEntity.ok(users);
+    }
+
+    private List<Integer> findUsersAtLevelImplementation(Map<String, Object> input) {
+        int n = (int) input.get("n");
+        int findId = (int) input.get("findId");
+        List<User> userList = (List<User>) input.get("users");
+
+        Map<Integer, Set<Integer>> followsMap = new HashMap<>();
+        for (User user : userList) {
+            followsMap.put(user.id, new HashSet<>(user.follows));
+        }
+
+        Set<Integer> visited = new HashSet<>();
+        Queue<UserLevel> queue = new LinkedList<>();
+        queue.add(new UserLevel(findId, 0));
+        visited.add(findId);
+
+        List<Integer> result = new ArrayList<>();
+
+        while (!queue.isEmpty()) {
+            UserLevel current = queue.poll();
+
+            if (current.level == n) {
+                result.add(current.userId);
+            }
+
+            if (current.level < n) {
+                Set<Integer> follows = followsMap.get(current.userId);
+                if (follows != null) {
+                    for (Integer followedId : follows) {
+                        if (!visited.contains(followedId)) {
+                            queue.add(new UserLevel(followedId, current.level + 1));
+                            visited.add(followedId);
+                        }
+                    }
+                }
+            }
+        }
+
+        return result;
+    }
+
+    // Sample data endpoint that returns a list of users
+    private List<User> getSampleUsers() {
+        return Arrays.asList(
+            new User(1, "Alice", Arrays.asList(2, 3)),
+            new User(2, "Bob", Arrays.asList(4)),
+            new User(3, "Charlie", Arrays.asList(4, 5)),
+            new User(4, "David", Arrays.asList(6)),
+            new User(5, "Eva", Arrays.asList(6)),
+            new User(6, "Frank", Arrays.asList())
+        );
+    }
+
+    private static class UserLevel {
+        int userId;
+        int level;
+
+        public UserLevel(int userId, int level) {
+            this.userId = userId;
+            this.level = level;
+        }
+    }
+
+    private static class User {
+        int id;
+        String name;
+        List<Integer> follows;
+
+        public User(int id, String name, List<Integer> follows) {
+            this.id = id;
+            this.name = name;
+            this.follows = follows;
+        }
+    }
+}
