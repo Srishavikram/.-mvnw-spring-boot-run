@@ -6,7 +6,7 @@
 
     @Override
     public void run(String... args) throws Exception {
-        // Optionally, you could initialize your local users here.
+    
     }
 
     @PostMapping("/findUsersAtLevel")
@@ -17,8 +17,8 @@
 
     @GetMapping("/users")
     public ResponseEntity<List<User>> getUsers() {
-        // Retrieve and return the list of users.
-        List<User> users = getSampleUsers(); // Function to retrieve sample users
+      
+        List<User> users = getSampleUsers(); 
         return ResponseEntity.ok(users);
     }
 
@@ -62,7 +62,7 @@
         return result;
     }
 
-    // Sample data endpoint that returns a list of users
+   
     private List<User> getSampleUsers() {
         return Arrays.asList(
             new User(1, "Alice", Arrays.asList(2, 3)),
