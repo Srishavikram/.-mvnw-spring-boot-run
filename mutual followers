@@ -1,0 +1,74 @@
+package com.example.mutualfollower;
+
+import org.springframework.boot.CommandLineRunner;
+import org.springframework.boot.SpringApplication;
+import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.*;
+
+@SpringBootApplication
+@RestController
+@RequestMapping("/api") 
+public class MutualFollowerApplication implements CommandLineRunner {
+
+    public static void main(String[] args) {
+        SpringApplication.run(MutualFollowerApplication.class, args);
+    }
+
+    @Override
+    public void run(String... args) {
+        
+    }
+
+    @PostMapping("/findMutualFollows")
+    public ResponseEntity<Map<String, Object>> findMutualFollows(@RequestBody Map<String, Object> input) {
+        List<List<Integer>> mutualFollows = identifyMutualFollows(input);
+        Map<String, Object> output = new HashMap<>();
+        output.put("regNo", "REG12347");
+        output.put("outcome", mutualFollows);
+        return ResponseEntity.ok(output);
+    }
+
+    private List<List<Integer>> identifyMutualFollows(Map<String, Object> input) {
+        List<User> users = (List<User>) input.get("users");
+        Map<Integer, Set<Integer>> followsMap = new HashMap<>(); 
+
+      
+        for (User user : users) {
+            followsMap.put(user.id, new HashSet<>(user.follows));
+        }
+
+        List<List<Integer>> mutualFollows = new ArrayList<>();
+        Set<String> addedPairs = new HashSet<>();
+
+       
+        for (User user : users) {
+            for (Integer followedId : user.follows) {
+               
+                if (followsMap.containsKey(followedId) && followsMap.get(followedId).contains(user.id)) {
+                    List<Integer> pair = Arrays.asList(Math.min(user.id, followedId), Math.max(user.id, followedId));
+                    String key = pair.get(0) + "," + pair.get(1); // Create a unique key based on sorted order
+                    if (!addedPairs.contains(key)) {
+                        mutualFollows.add(pair);
+                        addedPairs.add(key);
+                    }
+                }
+            }
+        }
+        return mutualFollows;
+    }
+
+    private static class User {
+        int id;
+        String name;
+        List<Integer> follows;
+
+        public User(int id, String name, List<Integer> follows) {
+            this.id = id;
+            this.name = name;
+            this.follows = follows;
+        }
+    }
+}
